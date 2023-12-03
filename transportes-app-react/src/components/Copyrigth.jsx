@@ -8,7 +8,7 @@ export default function Copyright() {
       {'Copyright © '}
       {/* <Link color="inherit" href="https://mui.com/"> */}
 
-        Ytos Informatica Ltda
+        Ytos Informatica Ltda &nbsp;
       {/* </Link>{' '} */}
       {new Date().getFullYear()}.
     </Typography>
