@@ -1,4 +1,4 @@
-import React from 'react' /* { useState, useEffect, forwardRef }  */
+import React, {useEffect} from 'react' /* { useState, useEffect, forwardRef }  */
 import {
     Box,
     Button,
@@ -22,11 +22,7 @@ import dayjs from 'dayjs';
 import 'dayjs/locale/pt-br'
 import CleanIcon from '@mui/icons-material/CleaningServices';
 import PredicaoIcon from '@mui/icons-material/OnlinePrediction';
-/* import SaveIcon from '@mui/icons-material/Save';
-import MuiAlert from '@mui/material/Alert';
- */
-
-
+ 
 const CalculoEmbarque = () => {
 
     const [dataEntrada, setDataEntrada] = React.useState(dayjs(new Date()));
@@ -36,11 +32,18 @@ const CalculoEmbarque = () => {
     const [codigoSentido, setCodigoSentido] = React.useState('0');
     const [codigoTrecho, setCodigoTrecho] = React.useState('0');
     const [percentualRisco, setPercentualRisco] = React.useState('80');
-    const [percentualTaxaBasica, setPercentualTaxaBasica] = React.useState('0,04')
+    const [percentualTaxaBasica] = React.useState('0,04')
     const [valorPremio, setValorPremio] = React.useState('0,00')
 
     /* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@ Rotinas @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
     
+    useEffect(() => {
+        if (valorEmbarque != '0,00' || valorEmbarque !=''){
+            calcular_premio_viagem();
+        }
+        
+    },[valorEmbarque]);
+   
     //limpar campos
     const LimparCampos = () => {
         setPercentualRisco('80');
@@ -70,6 +73,16 @@ const CalculoEmbarque = () => {
     //trecho
     const handleChangeTrecho = (event) =>{
         setCodigoTrecho(event.target.value);
+    }
+ 
+
+    //calcular o premio
+    const calcular_premio_viagem = () =>{
+        
+        
+        let valorCalculado = parseFloat( percentualTaxaBasica.replace(',','.')) * parseFloat( valorEmbarque.replace(',','.'));
+
+        setValorPremio(valorCalculado.toFixed(2).replace('.',','))
     }
 
     /* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@ Renderização @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
@@ -109,12 +122,12 @@ const CalculoEmbarque = () => {
                         id="outlined-helperText"
                         label="% - taxa básica"
                         labelrequired="*"
-                        value={percentualTaxaBasica}
-                        disabled='true'
+                        value={percentualTaxaBasica}                        
                         inputProps={{
                             maxLength: 3,
                             fontSize: 10,
-                            style: { textAlign: 'right' }
+                            style: { textAlign: 'right' },
+                            disabled: true
                         }}
                     />
                 </FormControl>
@@ -228,7 +241,7 @@ const CalculoEmbarque = () => {
                     <TextField
                         required
                         id="outlined-helperText"
-                        label="Valor-Embarque"
+                        label="Valor(R$)-Embarque"
                         labelrequired="*"
                         value={valorEmbarque}                        
                         onChange={(e) => setValorEmbarque(e.target.value)}                        
@@ -248,13 +261,14 @@ const CalculoEmbarque = () => {
                     <TextField
                         required
                         id="outlined-helperText"
-                        label="Valor de prêmio"                         
-                        value={valorPremio}
-                        disabled = 'true'                        
+                        label="Valor(R$)-prêmio"                         
+                        value={valorPremio}                        
                         inputProps={{
                             maxLength: 15,
                             fontSize: 10,
-                            style: { textAlign: 'right' }
+                            style: { textAlign: 'right' },
+                            disabled: true
+
                         }}
                     />
                 </FormControl>
