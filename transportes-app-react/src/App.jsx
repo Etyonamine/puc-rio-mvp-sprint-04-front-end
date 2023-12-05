@@ -11,13 +11,17 @@ import Box from '@mui/material/Box';
   return (  
     <div>
       <Container fixed>
-        <Box sx={{ my: 4 }}>
+        <Box 
+          component='div'
+          sx={{ my: 4 }}
+        >
           <NavBar />
           <Averbacao />
           
         </Box>
   
         <Box
+          component='div'
           sx={{ display: 'flex', justifyContent: 'flex-start' }}
         >
           <Copyright />   
