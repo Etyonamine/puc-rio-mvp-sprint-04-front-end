@@ -24,7 +24,7 @@ import Box from '@mui/material/Box';
           component='div'
           sx={{ display: 'flex', justifyContent: 'flex-start' }}
         >
-          <Copyright />   
+           
         </Box>
       </Container>
      

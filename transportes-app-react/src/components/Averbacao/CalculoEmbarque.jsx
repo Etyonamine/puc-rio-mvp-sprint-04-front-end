@@ -1,26 +1,21 @@
-import React, {useEffect} from 'react' /* { useState, useEffect, forwardRef }  */
+import React, { useEffect } from 'react'
 import {
     Box,
     Button,
-    Container,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogContentText,
-    DialogTitle,
     Divider,
     FormControl,
+    Grid,
     Paper,
     Table,
     TableBody,
-    TextField,   
+    TextField,
     TableContainer,
     TableHead,
     TableRow,
+    Typography,
     InputLabel,
     MenuItem,
     Select,
-    Stack,
     styled
 } from '@mui/material';
 import TableCell, { tableCellClasses } from '@mui/material/TableCell';
@@ -31,8 +26,8 @@ import dayjs from 'dayjs';
 import 'dayjs/locale/pt-br'
 import CleanIcon from '@mui/icons-material/CleaningServices';
 import PredicaoIcon from '@mui/icons-material/OnlinePrediction';
- 
- 
+
+
 const CalculoEmbarque = () => {
 
     const [dataEntrada, setDataEntrada] = React.useState(dayjs(new Date()));
@@ -45,12 +40,24 @@ const CalculoEmbarque = () => {
     const [codigoRisco, setCodigoRisco] = React.useState(0);
     const [percentualTaxaBasica] = React.useState('0,04')
     const [valorPremio, setValorPremio] = React.useState('0,00')
-    const [acidentesRiscosEncontrados, setListaAcidentesRiscos] = React.useState([{"id": "0","acidente":'', "risco" : '', "total" : ''}])
+    const [acidentesRiscosEncontrados, setListaAcidentesRiscos] = React.useState([{ "id": "0", "acidente": '', "risco": '', "total": '' }])
     const [urlBase] = React.useState(`${import.meta.env.VITE_URL_API_PREDICAO}`);
-    const [descricaoRisco,setDescricaoRisco] = React.useState('');
+    const [descricaoRisco, setDescricaoRisco] = React.useState('');
+    const [percTaxaAgravo, setPercTaxaAgravo] = React.useState(1);
+    const [valorPremioAgravado,setValorPremioAgravado] = React.useState(0);
 
     /* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@ Rotinas @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
-    
+
+    const createData = (risco, taxa_agravo) => {
+        return { risco, taxa_agravo };
+    }
+
+    const rows_taxa_agravo = [
+        createData('Baixo', '0,002'),
+        createData('Medio', '0,005'),
+        createData('Alto', '0,008'),
+    ];
+
 
     const StyledTableCell = styled(TableCell)(({ theme }) => ({
         [`&.${tableCellClasses.head}`]: {
@@ -71,15 +78,13 @@ const CalculoEmbarque = () => {
             border: 0,
         },
     }));
-    
+
     useEffect(() => {
-        if (valorEmbarque != '0,00' || valorEmbarque !=''){
+        if (valorEmbarque != '0,00' || valorEmbarque != '') {
             calcular_premio_viagem();
         }
-        
-    },[valorEmbarque]);
 
-    
+    }, [valorEmbarque]);
 
     //limpar campos
     const LimparCampos = () => {
@@ -91,84 +96,119 @@ const CalculoEmbarque = () => {
         setCodigoTrecho('0');
         setValorEmbarque('0,00');
         setCodigoRisco(0);
-        identifica_classe_risco();
+        identifica_classe_risco(0);
         setListaAcidentesRiscos([]);
-         
-    }
 
-    const setPredicao = ()=>{
-        
+    }
+    const valorTaxaAgravo = (codigo) => {
+        let valorTaxa = 0
+        switch (codigo) {
+            case 1:
+                valorTaxa = '0,002';
+                break;
+
+            case 2:
+                valorTaxa = '0,005';
+                break;
+
+            case 3:
+                valorTaxa = '0,009';
+                break;
+
+            default:
+                valorTaxa = '1';
+                break;
+        }
+        return valorTaxa;
+    }
+    const calcula_valor_premio_agravo =(percentual)=>{
+
+        return parseFloat(valorPremio) * parseFloat(percentual)
+    }
+    const setPredicao = () => {
+
         try {
 
             //valida se as informações estao preenchidas
-            if (dataEntrada == undefined){
+            if (dataEntrada == undefined) {
                 alert('Por favor, informe a data de embarque!')
                 return;
             }
-            if(codigoSentido ==='0' ){
+            if (ufOrigem == '0') {
+                alert('Por favor, informe o Estado Origem da viagem!')
+                return;
+            }
+            if (ufDestino == '0') {
+                alert('Por favor, informe o Estado Destino da viagem!')
+                return;
+            }
+            if (codigoSentido === '0') {
                 alert('Por favor, informe o sentido da viagem!')
                 return;
             }
-
-            if(codigoTrecho ==='0' ){
+            if (codigoTrecho === '0') {
                 alert('Por favor, informe o trecho da viagem!')
                 return;
             }
-            if(valorEmbarque =='0,00' || valorEmbarque ===undefined){
+            if (valorEmbarque == '0,00' || valorEmbarque === undefined) {
                 alert('Por favor, informe o valor de embarque!')
                 return;
             }
-            
+
             let url_predicao = urlBase + '/predicao';
             const data = new FormData();
-            data.append("dia",  getDiaSelecionado());
-            data.append("mes", getMesSelecionado());            
+            data.append("dia", getDiaSelecionado());
+            data.append("mes", getMesSelecionado());
             data.append("id_sentido", codigoSentido);
             data.append("id_trecho", codigoTrecho);
-            data.append("percentual_risco", (percentualRisco/100));
+            data.append("percentual_risco", (percentualRisco / 100));
 
             fetch(url_predicao,
                 {
                     method: 'POST',
-                    body: data                    
+                    body: data
                 })
                 .then(response => response.json())
                 .then(responseData => {
                     let codigo = responseData.id_risco;
-                    setCodigoRisco(codigo);                    
-                    setDescricaoRisco(identifica_classe_risco());
+                    let percentualTaxaAgravo = valorTaxaAgravo(codigo);
+                    let valorPremioAgravoCalculado = calcula_valor_premio_agravo(percentualTaxaAgravo);
+
+                    setCodigoRisco(codigo);
+                    setDescricaoRisco(identifica_classe_risco(codigo));
+                    setPercTaxaAgravo(percentualTaxaAgravo);
+                    setValorPremioAgravado(valorPremioAgravoCalculado);
                     getLista();
-                     
+
                 })
                 .catch(error => {
                     console.error(error);
                     return Promise.reject(error);
                 });
-                 
+
         } catch (error) {
-            if (error.message === "Failed to fetch")
-            {
-                 // get error message from body or default to response status                    
-                 alert('A comunicação com os serviços de predição de Acidentes está com problemas!');
-                 return Promise.reject(error);
-            } 
-           
+            if (error.message === "Failed to fetch") {
+                // get error message from body or default to response status                    
+                alert('A comunicação com os serviços de predição de Acidentes está com problemas!');
+                return Promise.reject(error);
+            }
+
         }
 
     }
-    
+
     const getLista = () => {
         let dia = getDiaSelecionado();
         let mes = getMesSelecionado();
-        if (codigoTrecho === 0 || codigoSentido===0){
+        if (codigoTrecho === 0 || codigoSentido === 0) {
             return
         }
         let url_consulta = urlBase + `/acidentes_riscos?dia=${dia}&mes=${mes}&id_trecho=${codigoTrecho}&id_sentido=${codigoSentido}`;
 
         fetch(url_consulta)
             .then(response => response.json())
-            .then(responseData =>{
-                if (responseData.lista!==undefined){
+            .then(responseData => {
+                if (responseData.lista !== undefined) {
                     setListaAcidentesRiscos(responseData.lista);
                 }
             })
@@ -182,59 +222,59 @@ const CalculoEmbarque = () => {
             });
     }
 
-    const identifica_classe_risco = () =>{
-        switch(codigoRisco) {
+    const identifica_classe_risco = (codigo) => {
+        switch (codigo) {
             case 1:
-              return 'Baixo';
+                return 'Baixo';
             case 2:
-              return 'Médio';
+                return 'Médio';
             case 3:
-              return 'Alto';
+                return 'Alto';
             default:
-              return 'Não identificado';
-          }
+                return 'Não identificado';
+        }
     }
 
     //recupera o mes informado
-    const getMesSelecionado = ()=>{
+    const getMesSelecionado = () => {
         return new Date(dataEntrada.toISOString()).getMonth();
     }
 
     //recupera o dia informado
-    const getDiaSelecionado = ()=>{
-                
+    const getDiaSelecionado = () => {
+
         return new Date(dataEntrada.toISOString()).getDate();
     }
 
     //origem
-    const handleChangeOrigem = (event) =>{
+    const handleChangeOrigem = (event) => {
         setUfOrigem(event.target.value);
     }
 
     //destino
-    const handleChangeDestino = (event) =>{
+    const handleChangeDestino = (event) => {
         setUfDestino(event.target.value);
     }
 
     //sentido
-    const handleChangeSentido = (event) =>{
+    const handleChangeSentido = (event) => {
         setCodigoSentido(event.target.value);
     }
 
     //trecho
-    const handleChangeTrecho = (event) =>{
+    const handleChangeTrecho = (event) => {
         setCodigoTrecho(event.target.value);
     }
- 
+
 
     //calcular o premio
-    const calcular_premio_viagem = () =>{
-        
-        let percentual_recalculado =  parseFloat( percentualTaxaBasica.replace(',','.'))/100;
-         
-        let valorCalculado = parseFloat(percentual_recalculado) * parseFloat( valorEmbarque.replace(',','.'));
+    const calcular_premio_viagem = () => {
 
-        setValorPremio(valorCalculado.toFixed(2).replace('.',','))
+        let percentual_recalculado = parseFloat(percentualTaxaBasica.replace(',', '.')) / 100;
+
+        let valorCalculado = parseFloat(percentual_recalculado) * parseFloat(valorEmbarque.replace(',', '.'));
+
+        setValorPremio(valorCalculado.toFixed(2).replace('.', ','))
     }
 
     /* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@ Renderização @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
@@ -275,7 +315,7 @@ const CalculoEmbarque = () => {
                         id="outlined-helperText"
                         label="% - taxa básica"
                         labelrequired="*"
-                        value={percentualTaxaBasica}                        
+                        value={percentualTaxaBasica}
                         inputProps={{
                             maxLength: 3,
                             fontSize: 10,
@@ -343,7 +383,7 @@ const CalculoEmbarque = () => {
                         id="cbo_uf_destino"
                         value={ufDestino}
                         label="Destino"
-                    onChange={(e) => handleChangeDestino(e)}
+                        onChange={(e) => handleChangeDestino(e)}
                     >
                         <MenuItem value={0}>Selecione</MenuItem>
                         <MenuItem value={24}>SP</MenuItem>
@@ -360,7 +400,7 @@ const CalculoEmbarque = () => {
                         id="cbo_sentido"
                         value={codigoSentido}
                         label="Destino"
-                    onChange={(e) => handleChangeSentido(e)}
+                        onChange={(e) => handleChangeSentido(e)}
                     >
                         <MenuItem value={0}>Selecione</MenuItem>
                         <MenuItem value={1}>Crescente</MenuItem>
@@ -379,11 +419,11 @@ const CalculoEmbarque = () => {
                         id="cbo_trecho"
                         value={codigoTrecho}
                         label="Trecho"
-                    onChange={(e) => handleChangeTrecho(e)}
+                        onChange={(e) => handleChangeTrecho(e)}
                     >
                         <MenuItem value={0}>Selecione</MenuItem>
                         <MenuItem value={1}>BR-116/SP</MenuItem>
-                        <MenuItem value={2}>BR-116/RJ</MenuItem>                       
+                        <MenuItem value={2}>BR-116/RJ</MenuItem>
                     </Select>
                 </FormControl>
                 &nbsp;
@@ -396,8 +436,8 @@ const CalculoEmbarque = () => {
                         id="outlined-helperText"
                         label="Valor(R$)-Embarque"
                         labelrequired="*"
-                        value={valorEmbarque}                        
-                        onChange={(e) => setValorEmbarque(e.target.value)}                        
+                        value={valorEmbarque}
+                        onChange={(e) => setValorEmbarque(e.target.value)}
                         inputProps={{
                             maxLength: 15,
                             fontSize: 10,
@@ -407,15 +447,15 @@ const CalculoEmbarque = () => {
                     />
                 </FormControl>
                 &nbsp;
-                  {/* valor de prêmio calculado ***************************************************** */}
+                {/* valor de prêmio calculado ***************************************************** */}
                 <FormControl
                     sx={{ width: 150, textAlign: 'center' }}
                 >
                     <TextField
                         required
                         id="outlined-helperText"
-                        label="Valor(R$)-prêmio"                         
-                        value={valorPremio}                        
+                        label="Valor(R$)-prêmio"
+                        value={valorPremio}
                         inputProps={{
                             maxLength: 15,
                             fontSize: 10,
@@ -427,13 +467,6 @@ const CalculoEmbarque = () => {
                 </FormControl>
             </Box>
             <br />
-            <Box
-                component='div'
-                sx={{justifyContent: 'flex-start' }}
-            >
-                O risco é {descricaoRisco}
-            </Box>            
-            <br />
             {/* ********************** Botões  ******************************** */}
             <Box
                 component='div'
@@ -444,21 +477,108 @@ const CalculoEmbarque = () => {
                     variant="contained"
                     endIcon={<CleanIcon />}
                     color="primary"
-                    onClick={LimparCampos}                    
+                    onClick={LimparCampos}
                 >
                     Limpar
                 </Button>
                 &nbsp;
                 <Button
                     variant="contained"
-                    endIcon={<PredicaoIcon />}                     
-                    onClick={setPredicao}    
-                    color = 'secondary'
+                    endIcon={<PredicaoIcon />}
+                    onClick={setPredicao}
+                    color='secondary'
                 >
                     Predição
                 </Button>
             </Box>
             <br />
+            <Box
+                component='div'
+                sx={{  justifyContent: 'flex-start' }}
+            >
+                <Typography variant="h6" gutterBottom>
+                    Avaliação - Agravo na cobrança do prêmio
+                </Typography>
+
+
+
+
+
+                <Grid container spacing={1}>
+                    <Grid item xs={6} sx={{display: 'flex', justifyContent:'flex-start' }}>
+                        <TableContainer component={Paper}>
+                            <Table sx={{ minWidth: 350 }} aria-label="simple table">
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell colSpan='2'>
+                                            Tabela de percentual de agravo
+                                        </TableCell>
+                                    </TableRow>
+                                    <TableRow>
+                                        <TableCell>Risco</TableCell>
+                                        <TableCell align="center">Taxa-agravo</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {rows_taxa_agravo.map((row) => (
+                                        <TableRow
+                                            key={row.risco}
+                                            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                                        >
+                                            <TableCell component="th" scope="row">
+                                                {row.risco}
+                                            </TableCell>
+                                            <TableCell align="center">{row.taxa_agravo}</TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+
+                        </TableContainer>
+                    </Grid>
+                    <Grid item xs={6}sx={{display: 'flex', justifyContent:'flex-end' }}>
+                        <TableContainer component={Paper} >
+                            <Table sx={{ minWidth: 350 }} aria-label="simple table">
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell colSpan='2'>Re-cálculo</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+
+                                    <TableRow>
+                                        <TableCell component="th" scope="row" sx={{display:'flex' , justifyContent:'center'}}>
+                                            <Typography component='div'>
+                                                O risco de acidente foi considerado
+                                            </Typography>                                            
+                                        </TableCell>
+                                    </TableRow>
+                                    <TableRow>
+                                        <TableCell component="th" scope="row" sx={{display:'flex' , justifyContent:'center'}}>
+                                            <Typography component = 'div' variant="h7" gutterBottom>
+                                                    <b>{descricaoRisco}</b>
+                                            </Typography>
+                                        </TableCell>
+                                    </TableRow>
+                                    <TableRow>
+                                        <TableCell align="center" sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                                            Prêmio com agravo
+                                        </TableCell>                                        
+                                    </TableRow>
+                                    <TableRow>
+                                        <TableCell>                                        
+                                                                             
+                                        </TableCell>
+                                    </TableRow>
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    </Grid>
+                </Grid>
+ 
+            </Box>
+            <br />
+
             {/* TABELA  ********************************************************************************** */}
             <Box
                 component="div"
@@ -467,8 +587,8 @@ const CalculoEmbarque = () => {
                     <Table sx={{ minWidth: 650 }} aria-label="lista">
                         <TableHead sx={{ height: 40 }}>
                             <TableRow>
-                                <StyledTableCell align="center">Id</StyledTableCell>                                
-                                <StyledTableCell align="center">Acidente</StyledTableCell>                                
+                                <StyledTableCell align="center">Id</StyledTableCell>
+                                <StyledTableCell align="center">Acidente</StyledTableCell>
                                 <StyledTableCell align="center">Quantidade</StyledTableCell>
                                 <StyledTableCell align="center">Risco</StyledTableCell>
                             </TableRow>
@@ -487,16 +607,16 @@ const CalculoEmbarque = () => {
                                             divider={<Divider orientation="vertical" flexItem />}
                                         >
                                             {row.id}
-                                        </StyledTableCell>                                                                           
+                                        </StyledTableCell>
                                         <StyledTableCell align='center'>
                                             {row.acidente}
-                                        </StyledTableCell>                                        
+                                        </StyledTableCell>
                                         <StyledTableCell align='center'>
                                             {row.total}
-                                        </StyledTableCell>                                        
+                                        </StyledTableCell>
                                         <StyledTableCell align='center'>
                                             {row.risco}
-                                        </StyledTableCell>              
+                                        </StyledTableCell>
                                     </StyledTableRow>
                                 )
                                 )
