@@ -34,6 +34,7 @@ const CalculoEmbarque = () => {
     const [percentualRisco, setPercentualRisco] = React.useState('80');
     const [percentualTaxaBasica] = React.useState('0,04')
     const [valorPremio, setValorPremio] = React.useState('0,00')
+    const [acidentesRiscosEncontrados, setListaAcidentesRiscos] = React.useState([])
 
     /* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@ Rotinas @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
     
@@ -53,6 +54,25 @@ const CalculoEmbarque = () => {
         setCodigoSentido('0');
         setCodigoTrecho('0');
         setValorEmbarque('0,00');
+    }
+
+    const getLista = () => {
+
+        let dia =24;
+        let mes = 6;
+
+
+        fetch(`${import.meta.env.VITE_URL_API_PREDICAO}/acidentes_riscos?dia=${dia}&mes=${mes}&id_trecho=${codigoTrecho}&id_sentido=${codigoSentido}`)
+            .then(response => response.json())
+            .then(responseData => setListaAcidentesRiscos(responseData.lista))
+            .catch(error => {
+                if (error.message === "Failed to fetch") {
+                    // get error message from body or default to response status                    
+                    alert('A comunicação com o serviço de consulta de Modelo de Veículos está com problemas!');
+                }
+                setListaAcidentesRiscos([]);
+                console.log(error);
+            });
     }
 
     //origem
@@ -292,7 +312,7 @@ const CalculoEmbarque = () => {
                 <Button
                     variant="contained"
                     endIcon={<PredicaoIcon />}                     
-                    onClick={LimparCampos}    
+                    onClick={getLista}    
                     color = 'secondary'
                 >
                     Predição
