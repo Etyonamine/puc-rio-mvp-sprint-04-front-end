@@ -50,7 +50,7 @@ const CalculoEmbarque = () => {
  
     const StyledTableCell = styled(TableCell)(({ theme }) => ({
         [`&.${tableCellClasses.head}`]: {
-            backgroundColor: theme.palette.common.black,
+            backgroundColor: 'plum',//theme.palette.common.black
             color: theme.palette.common.white,
         },
         [`&.${tableCellClasses.body}`]: {
@@ -70,14 +70,23 @@ const CalculoEmbarque = () => {
 
     useEffect (()=>{
         getRiscos();
-    });
+    },[]);
 
     useEffect(() => {
         if (valorEmbarque != '0,00' || valorEmbarque != '') {
             calcular_premio_viagem();
         }
+    },[valorEmbarque]);
 
-    });
+    useEffect(()=>{
+        if (acidentesRiscosEncontrados.length ===0){
+            calcula_valor_premio_agravo(0);
+            setDescricaoRisco('');
+            alert('A predição não encontrou riscos de acidentes para o agravo do embarque!')
+        }
+        
+
+    },[acidentesRiscosEncontrados])
 
     //limpar campos
     const LimparCampos = () => {
@@ -94,9 +103,11 @@ const CalculoEmbarque = () => {
         setListaAcidentesRiscos([]);
 
     }
+    // calcula o valor da taxa de agravo
     const valorTaxaAgravo = (codigo) => {       
         return listaRiscos.find(x=>x.id_risco == codigo).percentual_taxa;         
     }
+    //calcula o valor do premio agravo
     const calcula_valor_premio_agravo =(percentual)=>{
         if (percentual === 0){            
             setDescricaoRisco('');            
@@ -107,6 +118,7 @@ const CalculoEmbarque = () => {
         let valorTotal =parseFloat(valorPremio.replace(',', '.')) + valorAgravoCalculado;        
         setValorPremioAgravado(valorTotal);
     }
+    // Predição
     const setPredicao = () => {
 
         try {
@@ -175,8 +187,7 @@ const CalculoEmbarque = () => {
         }
 
     }
-    
-
+    // lista de acidentes
     const getLista = () => {
         let dia = getDiaSelecionado();
         let mes = getMesSelecionado();
@@ -187,16 +198,8 @@ const CalculoEmbarque = () => {
 
         fetch(url_consulta)
             .then(response => response.json())
-            .then(responseData => {
-                if (responseData.lista !== undefined) {
-                    setListaAcidentesRiscos(responseData.lista);
-                }
-                if (acidentesRiscosEncontrados.length === 0)
-                {  
-
-                    setValorTaxaEncontrado(0);
-                    calcula_valor_premio_agravo(0);
-                }
+            .then(responseData => {                
+                setListaAcidentesRiscos(responseData.lista);                              
             })
             .catch(error => {
                 if (error.message === "Failed to fetch") {
@@ -207,7 +210,7 @@ const CalculoEmbarque = () => {
                 console.log(error);
             });
     }
-
+    // lista de risco
     const getRiscos = ()=>{
         let url_risco = urlBase + '/riscos';
 
@@ -227,7 +230,7 @@ const CalculoEmbarque = () => {
             console.log(error);
         });
     }
-
+    // identifica a classe de risco conforme codigo de risco
     const identifica_classe_risco = (codigo) => {
         switch (codigo) {
             case 1:
@@ -240,57 +243,61 @@ const CalculoEmbarque = () => {
                 return 'Não identificado';
         }
     }
-
     //recupera o mes informado
     const getMesSelecionado = () => {
         return new Date(dataEntrada.toISOString()).getMonth();
     }
-
     //recupera o dia informado
     const getDiaSelecionado = () => {
 
         return new Date(dataEntrada.toISOString()).getDate();
     }
-
     //origem
     const handleChangeOrigem = (event) => {
         setUfOrigem(event.target.value);
     }
-
     //destino
     const handleChangeDestino = (event) => {
         setUfDestino(event.target.value);
     }
-
     //sentido
     const handleChangeSentido = (event) => {
         setCodigoSentido(event.target.value);
     }
-
     //trecho
     const handleChangeTrecho = (event) => {
         setCodigoTrecho(event.target.value);
     }
-
-
     //calcular o premio
     const calcular_premio_viagem = () => {
 
-        let percentual_recalculado = parseFloat(percentualTaxaBasica.replace(',', '.')) / 100;
+        let percentual_recalculado = parseFloat(percentualTaxaBasica.replace(',', '.'));
 
         let valorCalculado = parseFloat(percentual_recalculado) * parseFloat(valorEmbarque.replace(',', '.'));
 
         setValorPremio(valorCalculado.toFixed(2).replace('.', ','))
-    }
+    } 
 
     /* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@ Renderização @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
     return (
         <div>
             <Box
                 component='div'
-            >
-                <h2>Cálculo de Prêmio e Gerenciamento de Risco de Embarque</h2>
-            </Box>
+               
+            >                
+                <Typography variant="h5" gutterBottom>
+                    <b>Concessionária - Nova Dutra - Predição de risco de acidente</b>
+                </Typography>
+            </Box>          
+            <Box
+                component='div'
+            >                
+                <Typography variant="h6" gutterBottom>
+                    Cálculo de Prêmio e Gerenciamento de Risco de Embarque
+                </Typography>
+            </Box>          
+            <Divider />
+            <br />
             <Box
                 component='div'
                 sx={{ display: 'flex', justifyContent: 'flex-start' }}
@@ -473,6 +480,9 @@ const CalculoEmbarque = () => {
                 </FormControl>
             </Box>
             <br />
+            <Divider />
+            <br />
+            
             {/* ********************** Botões  ******************************** */}
             <Box
                 component='div'
@@ -498,6 +508,7 @@ const CalculoEmbarque = () => {
                 </Button>
             </Box>
             <br />
+            <Divider />
             <Box
                 component='div'
                 sx={{  justifyContent: 'flex-start' }}
@@ -512,27 +523,27 @@ const CalculoEmbarque = () => {
                         <TableContainer component={Paper}>
                             <Table sx={{ minWidth: 350 }} aria-label="simple table">
                                 <TableHead>
-                                    <TableRow>
-                                        <TableCell colSpan='2'>
-                                            Tabela de percentual de agravo
-                                        </TableCell>
-                                    </TableRow>
-                                    <TableRow>
-                                        <TableCell>Risco</TableCell>
-                                        <TableCell align="center">Taxa-agravo</TableCell>
-                                    </TableRow>
+                                    <StyledTableRow>
+                                        <StyledTableCell colSpan='2'>                                            
+                                            Tabela de percentual de agravo                                            
+                                        </StyledTableCell>
+                                    </StyledTableRow>
+                                    <StyledTableRow>
+                                        <StyledTableCell>Risco</StyledTableCell>
+                                        <StyledTableCell align="center">Taxa-agravo</StyledTableCell>
+                                    </StyledTableRow>
                                 </TableHead>
                                 <TableBody>
                                     {listaRiscos.map((row) => (
-                                        <TableRow
+                                        <StyledTableRow
                                             key={row.id_risco}
                                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                                         >
-                                            <TableCell component="th" scope="row">
+                                            <StyledTableCell component="th" scope="row">
                                                 {row.descricao}
-                                            </TableCell>
-                                            <TableCell align="center">{ row.percentual_taxa}</TableCell>
-                                        </TableRow>
+                                            </StyledTableCell>
+                                            <StyledTableCell align="center">{ row.percentual_taxa}</StyledTableCell>
+                                        </StyledTableRow>
                                     ))}
                                 </TableBody>
                             </Table>
@@ -543,38 +554,39 @@ const CalculoEmbarque = () => {
                         <TableContainer component={Paper} >
                             <Table sx={{ minWidth: 350 }} aria-label="simple table">
                                 <TableHead>
-                                    <TableRow>
-                                        <TableCell colSpan='2'>Resultado Predição</TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-
-                                    <TableRow>
-                                        <TableCell component="th" scope="row" sx={{display:'flex' , justifyContent:'center'}}>
+                                    <StyledTableRow>
+                                        <StyledTableCell   sx={{display:'flex' , justifyContent:'center'}}>Resultado Predição</StyledTableCell>
+                                    </StyledTableRow>
+                                    <StyledTableRow>
+                                        <StyledTableCell component="th" scope="row" sx={{display:'flex' , justifyContent:'center'}}>
                                             <Typography component='div'>
                                                 O risco de acidente foi considerado
                                             </Typography>                                            
-                                        </TableCell>
-                                    </TableRow>
-                                    <TableRow>
-                                        <TableCell component="th" scope="row" sx={{display:'flex' , justifyContent:'center'}}>
+                                        </StyledTableCell>
+                                    </StyledTableRow>
+                                </TableHead>
+                                <TableBody>
+
+                                   
+                                    <StyledTableRow>
+                                        <StyledTableCell component="th" scope="row" sx={{display:'flex' , justifyContent:'center'}}>
                                             <Typography component = 'div' variant="h7" gutterBottom>
                                                     <b>{descricaoRisco}</b>
                                             </Typography>
-                                        </TableCell>
-                                    </TableRow>
-                                    <TableRow>
-                                        <TableCell align="center" sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                                        </StyledTableCell>
+                                    </StyledTableRow>
+                                    <StyledTableRow>
+                                        <StyledTableCell align="center" sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
                                             Prêmio com agravo
-                                        </TableCell>                                        
-                                    </TableRow>
-                                    <TableRow>
-                                        <TableCell  align="center">                                        
+                                        </StyledTableCell>                                        
+                                    </StyledTableRow>
+                                    <StyledTableRow>
+                                        <StyledTableCell  align="center">                                        
                                             <div disabled = {valorTaxaEncontrado == 0}>
                                                 <b>{valorPremioAgravado.toFixed(2).replace('.',',')}</b>                     
                                             </div>                                            
-                                        </TableCell>
-                                    </TableRow>
+                                        </StyledTableCell>
+                                    </StyledTableRow>
                                 </TableBody>
                             </Table>
                         </TableContainer>
@@ -583,11 +595,15 @@ const CalculoEmbarque = () => {
  
             </Box>
             <br />
-
+            <Divider />
             {/* TABELA  ********************************************************************************** */}
             <Box
                 component="div"
             >
+                <Typography variant="h6" gutterBottom>
+                    Lista de ocorrências de acidentes - 2010 à 2023
+                </Typography>
+                <Divider />
                 <TableContainer component={Paper}>
                     <Table sx={{ minWidth: 650 }} aria-label="lista">
                         <TableHead sx={{ height: 40 }}>
