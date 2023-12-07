@@ -31,9 +31,7 @@ import PredicaoIcon from '@mui/icons-material/OnlinePrediction';
 const CalculoEmbarque = () => {
 
     const [dataEntrada, setDataEntrada] = React.useState(dayjs(new Date()));
-    const [valorEmbarque, setValorEmbarque] = React.useState('0,00');
-    const [ufOrigem, setUfOrigem] = React.useState('0');
-    const [ufDestino, setUfDestino] = React.useState('0');
+    const [valorEmbarque, setValorEmbarque] = React.useState('0,00');    
     const [codigoSentido, setCodigoSentido] = React.useState('0');
     const [codigoTrecho, setCodigoTrecho] = React.useState('0');
     const [percentualRisco, setPercentualRisco] = React.useState('80');    
@@ -51,7 +49,7 @@ const CalculoEmbarque = () => {
     const StyledTableCell = styled(TableCell)(({ theme }) => ({
         [`&.${tableCellClasses.head}`]: {
             backgroundColor: 'plum',//theme.palette.common.black
-            color: theme.palette.common.white,
+            color: theme.palette.common.black,
         },
         [`&.${tableCellClasses.body}`]: {
             fontSize: 14,
@@ -91,9 +89,7 @@ const CalculoEmbarque = () => {
     //limpar campos
     const LimparCampos = () => {
         setPercentualRisco('80');
-        setDataEntrada(dayjs(new Date()));
-        setUfOrigem('0');
-        setUfDestino('0');
+        setDataEntrada(dayjs(new Date()));        
         setCodigoSentido('0');
         setCodigoTrecho('0');
         setValorEmbarque('0,00');        
@@ -128,14 +124,7 @@ const CalculoEmbarque = () => {
                 alert('Por favor, informe a data de embarque!')
                 return;
             }
-            if (ufOrigem == '0') {
-                alert('Por favor, informe o Estado Origem da viagem!')
-                return;
-            }
-            if (ufDestino == '0') {
-                alert('Por favor, informe o Estado Destino da viagem!')
-                return;
-            }
+            
             if (codigoSentido === '0') {
                 alert('Por favor, informe o sentido da viagem!')
                 return;
@@ -251,15 +240,7 @@ const CalculoEmbarque = () => {
     const getDiaSelecionado = () => {
 
         return new Date(dataEntrada.toISOString()).getDate();
-    }
-    //origem
-    const handleChangeOrigem = (event) => {
-        setUfOrigem(event.target.value);
-    }
-    //destino
-    const handleChangeDestino = (event) => {
-        setUfDestino(event.target.value);
-    }
+    }    
     //sentido
     const handleChangeSentido = (event) => {
         setCodigoSentido(event.target.value);
@@ -303,7 +284,7 @@ const CalculoEmbarque = () => {
                 sx={{ display: 'flex', justifyContent: 'flex-start' }}
             >
                 {/* percentual de ocorrencias de acidentes ***************************************************** */}
-                <FormControl sx={{ width: 250, textAlign: 'center' }}>
+                <FormControl sx={{ width: 200, textAlign: 'center' }}>
                     <TextField
                         required
                         id="outlined-helperText"
@@ -322,7 +303,7 @@ const CalculoEmbarque = () => {
                 </FormControl>
                 &nbsp;
                 {/* percentual de taxa basica de percurso ***************************************************** */}
-                <FormControl sx={{ width: 150, textAlign: 'center' }}>
+                <FormControl sx={{ width: 120, textAlign: 'center' }}>
                     <TextField
                         required
                         id="outlined-helperText"
@@ -336,14 +317,8 @@ const CalculoEmbarque = () => {
                             disabled: true
                         }}
                     />
-                </FormControl>
-            </Box>
-            <br />
-            <Box
-                component='div'
-                sx={{ display: 'flex', justifyContent: 'flex-start' }}
-            >
-
+                </FormControl>           
+                &nbsp;
                 {/* Data ***************************************************** */}
                 <LocalizationProvider
                     dateAdapter={AdapterDayjs}
@@ -366,45 +341,7 @@ const CalculoEmbarque = () => {
                     </FormControl>
                 </LocalizationProvider>
                 &nbsp;
-
-                {/* UF - Origem ***************************************************** */}
-                <FormControl sx={{ width: 150, textAlign: 'center' }}>
-                    <InputLabel id="lbl_uf_origem">Origem</InputLabel>
-                    <Select
-                        labelId="lbl_uf_origem"
-                        id="cbo_uf_origem"
-                        value={ufOrigem}
-                        label="Origem"
-                        onChange={(e) => handleChangeOrigem(e)}
-                        inputProps={{
-                            style: { fontSize: 14, textAlign: 'left' },
-
-                        }}
-                    >
-                        <MenuItem value={0}>Selecione</MenuItem>
-                        <MenuItem value={24}>SP</MenuItem>
-                        <MenuItem value={20}>RJ</MenuItem>
-                    </Select>
-                </FormControl>
-                &nbsp;
-
-                {/* UF - Destino ***************************************************** */}
-                <FormControl sx={{ width: 150, textAlign: 'center' }}>
-                    <InputLabel id="lbl_uf_destino">Destino</InputLabel>
-                    <Select
-                        labelId="lbl_uf_destino"
-                        id="cbo_uf_destino"
-                        value={ufDestino}
-                        label="Destino"
-                        onChange={(e) => handleChangeDestino(e)}
-                    >
-                        <MenuItem value={0}>Selecione</MenuItem>
-                        <MenuItem value={24}>SP</MenuItem>
-                        <MenuItem value={20}>RJ</MenuItem>
-                    </Select>
-                </FormControl>
-                &nbsp;
-
+                      
                 {/* sentido da rodovia ***************************************************** */}
                 <FormControl sx={{ width: 150, textAlign: 'center' }}>
                     <InputLabel id="lbl_sentido">Sentido</InputLabel>
@@ -530,7 +467,7 @@ const CalculoEmbarque = () => {
                                     </StyledTableRow>
                                     <StyledTableRow>
                                         <StyledTableCell>Risco</StyledTableCell>
-                                        <StyledTableCell align="center">Taxa-agravo</StyledTableCell>
+                                        <StyledTableCell align="center">Taxa-agravo (%)</StyledTableCell>
                                     </StyledTableRow>
                                 </TableHead>
                                 <TableBody>

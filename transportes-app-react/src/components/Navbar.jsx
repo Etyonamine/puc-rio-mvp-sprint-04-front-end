@@ -7,12 +7,10 @@ import Typography from '@mui/material/Typography';
 import Menu from '@mui/material/Menu/Menu';
 import MenuIcon from '@material-ui/icons/Menu';
 import Container from '@mui/material/Container';
-import Button from '@mui/material/Button';
-import MenuItem from '@mui/material/MenuItem';
 import LogoEmpresa from '../assets/LogoEmpresa2.png';
-import {Link} from 'react-router-dom';
 
-const pages = [];
+
+
 
 
 function NavBar() {
@@ -84,14 +82,7 @@ function NavBar() {
               sx={{
                 display: { xs: 'block', md: 'none' },
               }}
-            >
-              {pages.map((page) => (
-                <MenuItem key={page.rota} onClick={handleCloseNavMenu}>
-                  <Typography textAlign="center">
-                    <Link style = {{textDecoration: "none", color: "black"}} to={`/${page.rota}`}>{page.nome}</Link>                    
-                  </Typography>
-                </MenuItem>
-              ))}
+            >             
             </Menu>
           </Box>
           {/* <AdbIcon sx={{ display: { xs: 'flex', md: 'none' }, mr: 1 }} /> */}
@@ -118,20 +109,7 @@ function NavBar() {
               width={120}
               src={LogoEmpresa}
             />Sistema de gerenciamento de estacionamento
-          </Typography>
-          
-          {/* ********************************************* menu principal do sistema *****************************************************************/} 
-          <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }} justifyContent = "right">
-            {pages.map((page) => (
-              <Button
-                key={page.rota}
-                onClick={handleCloseNavMenu}
-                sx={{ my: 2, color: 'white', display: 'block' }}
-              >
-                <Link style = {{textDecoration: "none", color : "white"}} to={`/${page.rota}`}>{page.nome}</Link>                    
-              </Button>
-            ))}
-          </Box>       
+          </Typography>          
         </Toolbar>
       </Container>
     </AppBar>

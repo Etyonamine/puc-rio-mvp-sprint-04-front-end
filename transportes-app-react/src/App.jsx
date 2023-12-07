@@ -2,7 +2,6 @@
 import Container from '@mui/material/Container';
 import NavBar from './components/Navbar';
 import Averbacao from './pages/Averbacao/averbacao';
-import Copyright from './components/Copyrigth';
 import Box from '@mui/material/Box';
 
 
