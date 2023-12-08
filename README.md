@@ -11,11 +11,12 @@ Esta é uma aplicação front-end que irá consumir as API que possui o modelo d
 1)Instalar o NODE a versão v16.20.2
 
 ## Execução - via fonte - vscode
-1)Iniciar os serviços da API do machine Learning
+1)Iniciar o serviço da API do machine Learning do repositorio : 
+    https://github.com/Etyonamine/puc-rio-mvp-sprint-04-BackEnd-e-Colab
 
 2)Ambiente de desenvolvimento:
 
-    2.1)Acessar o diretório transportes-app-react
+    2.1)Acessar o sub-diretório transportes-app-react
 
     2.2)Executar o comando npm install no terminal do vscode ou janela command no diretório transportes-app-react do repositorio    
 
