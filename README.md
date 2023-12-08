@@ -17,6 +17,6 @@ Esta é uma aplicação front-end que irá consumir as API que possui o modelo d
 
     2.1)Acessar o diretório transportes-app-react
 
-    2.2)Executar o comando npm install no terminal do vscode ou janela command no diretório source do repositorio    
+    2.2)Executar o comando npm install no terminal do vscode ou janela command no diretório transportes-app-react do repositorio    
 
     2.3)Executar o comando = npm run dev
